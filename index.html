@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101317">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Private, lokale Buderus-Verbrauchshistorie mit Monats- und Jahresvergleich.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest?v=4.0.0">
+  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <title>Buderus · Energiemonitor</title>
+</head>
+<body>
+  <main class="shell">
+    <header class="header">
+      <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 21c4-1 4-12 8-12s4 12 8 12" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"/><circle cx="24" cy="21" r="3" fill="currentColor"/></svg></div>
+      <div class="brand"><div class="eyebrow">ENERGIEMONITORING</div><h1>Wärmeerzeuger</h1></div>
+      <div class="local-badge" title="Deine Daten bleiben in diesem Browser">Lokal</div>
+    </header>
+
+    <nav class="tabs" aria-label="Ansichten">
+      <button class="tab is-active" data-tab="year" aria-controls="yearPanel" aria-selected="true">Monate</button>
+      <button class="tab" data-tab="compare" aria-controls="comparePanel" aria-selected="false">Vergleich</button>
+      <button class="tab" data-tab="data" aria-controls="dataPanel" aria-selected="false">Daten</button>
+    </nav>
+
+    <section class="panel" id="yearPanel">
+      <div class="section-top">
+        <div><p class="section-caption">JAHRESANSICHT</p><h2>Monatsverbrauch</h2></div>
+        <label class="picker">Jahr<select id="yearSelect" aria-label="Jahr auswählen"></select></label>
+      </div>
+      <div class="summary" id="yearSummary"></div>
+      <div class="monthly-grid" id="monthList"></div>
+      <p class="helper" id="yearNote"></p>
+    </section>
+
+    <section class="panel" id="comparePanel" hidden>
+      <div class="section-top"><div><p class="section-caption">JAHRESVERGLEICH</p><h2>Monate vergleichen</h2></div></div>
+      <div class="compare-pickers">
+        <label class="picker">Neueres Jahr<select id="compareCurrent"></select></label>
+        <label class="picker">Älteres Jahr<select id="comparePrevious"></select></label>
+      </div>
+      <div class="compare-summary" id="compareSummary"></div>
+      <div class="legend"><span><i class="legend-dot current"></i><span id="legendCurrent">Neueres Jahr</span></span><span><i class="legend-dot previous"></i><span id="legendPrevious">Älteres Jahr</span></span></div>
+      <div class="comparison-list" id="comparisonList"></div>
+      <p class="helper" id="compareNote"></p>
+    </section>
+
+    <section class="panel" id="dataPanel" hidden>
+      <div class="section-top"><div><p class="section-caption">DATENVERWALTUNG</p><h2>Deine Historie</h2></div></div>
+      <p class="intro">Importiere deine originalen MyBuderus-CSV-Dateien. Du kannst später weitere Exporte ergänzen. Überlappende Messwerte werden nicht doppelt gezählt.</p>
+      <label class="file-cta" for="csvInput"><span aria-hidden="true">＋</span> CSV-Dateien auswählen</label>
+      <input class="sr-only-file" id="csvInput" type="file" accept=".csv,text/csv" multiple aria-label="Buderus CSV-Dateien auswählen">
+      <p class="fine-print">Mehrere Dateien auf einmal oder nacheinander · Verarbeitung nur auf diesem Gerät</p>
+      <div class="notification" role="status" aria-live="polite" id="importStatus">Noch kein neuer Import durchgeführt.</div>
+      <div class="data-stat" id="dataStat"></div>
+      <h3>Sicherung</h3>
+      <p class="intro">Browserdaten können beim Löschen von Websitedaten verloren gehen. Sichere deine Historie regelmäßig als Datei.</p>
+      <div class="actions"><button class="action-button" id="backupBtn">Sicherung herunterladen</button><label class="action-button" for="restoreInput">Sicherung einspielen</label><input class="sr-only-file" id="restoreInput" type="file" accept=".json,application/json"></div>
+      <details class="help-details"><summary>Was wird gespeichert?</summary><p>Stunden-, Tages- und Monatsdaten aus den CSV-Dateien, soweit vorhanden. Fehlende Werte bleiben leer. Gas, Heizungsanteil und Warmwasser werden nicht ungeprüft miteinander verrechnet. Deine Daten werden nicht auf GitHub hochgeladen.</p></details>
+      <div class="danger-zone"><button id="clearBtn" class="danger-button">Lokale Historie löschen</button></div>
+    </section>
+
+    <div class="global-error" id="globalError" role="alert" hidden></div>
+    <footer class="footer"><span id="saveLabel">Nur auf diesem Gerät</span><span id="versionLabel">Version wird geladen …</span></footer>
+  </main>
+  <script type="module" src="app.mjs?v=4.0.0"></script>
+</body>
+</html>
