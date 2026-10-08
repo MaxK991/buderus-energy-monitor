@@ -1,6 +1,6 @@
 import {MONTHS,FIELDS,parseBuderusCSV,mergeRecords,normalizeRecord,getYears,getYear,getComparison,formatEnergy,formatTemp} from './engine.mjs';
 
-const VERSION='v4.0.0';
+const VERSION='v4.1.0';
 const STORAGE='buderus_monitor_v4_rows';
 const LEGACY='buderus_energy_v2';
 const FILE_COUNT='buderus_monitor_v4_file_count';
@@ -134,13 +134,22 @@ function renderCompare(){
     const label=can?(delta===null?'Nicht berechenbar':(delta>0?'+':'')+delta.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+' %'):'–';
     const css=delta===null?'':delta<0?'good':delta>0?'bad':'';
     const opened=selectedComparisonMonth===i;
-    const pair=(data,year,klass)=>`<div class="comparison-line"><span class="year">${year}</span><div class="track"><div class="bar ${klass}" style="width:${safeNumber((data.gas??0)/max*100)}%"></div></div><span class="number">${formatEnergy(data.gas)}</span></div>`;
-    return `<div class="comparison-item"><button type="button" class="comparison-button" data-compare-month="${i}" aria-expanded="${opened}" aria-label="${MONTHS[i]} vergleichen, ${compareCurrent}: ${formatEnergy(m.gas)} kWh, ${comparePrevious}: ${formatEnergy(prev.gas)} kWh">
+    // Jahreswerte aus Buderus: Gas (kWh) + Ø Außentemperatur (°C) stets nebeneinander vergleichbar.
+    // Fehlende Temperaturen niemals als 0 °C darstellen.
+    const pair=(data,year,klass)=>`<div class="comparison-line"><span class="year">${year}</span><div class="track"><div class="bar ${klass}" style="width:${safeNumber((data.gas??0)/max*100)}%"></div></div><span class="comparison-values"><span class="number">${formatEnergy(data.gas)} <small>kWh</small></span><span class="temperature">Ø ${formatTemp(data.outside)}</span></span></div>`;
+    const tempsAvailable=m.outside!==null && prev.outside!==null && !m.partial && !prev.partial;
+    const temperatureDelta=tempsAvailable ? m.outside-prev.outside : null;
+    const temperatureComparison=tempsAvailable && compareCurrent!==comparePrevious
+      ? `<div class="comparison-weather">Ø Außentemperatur: ${Math.abs(temperatureDelta)<.05
+        ? `<strong>gleich warm</strong> wie ${comparePrevious}`
+        : `<strong>${Math.abs(temperatureDelta).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})} °C ${temperatureDelta>0?'wärmer':'kälter'}</strong> als ${comparePrevious}`}</div>`
+      : '';
+    return `<div class="comparison-item"><button type="button" class="comparison-button" data-compare-month="${i}" aria-expanded="${opened}" aria-label="${MONTHS[i]} vergleichen, ${compareCurrent}: ${formatEnergy(m.gas)} kWh bei ${formatTemp(m.outside)}, ${comparePrevious}: ${formatEnergy(prev.gas)} kWh bei ${formatTemp(prev.outside)}">
       <div class="comparison-top"><strong>${MONTHS[i]}</strong><span class="change ${css}">${label}</span></div>
-      ${pair(m,compareCurrent,'compare-current')}${pair(prev,comparePrevious,'compare-previous')}
+      ${pair(m,compareCurrent,'compare-current')}${pair(prev,comparePrevious,'compare-previous')}${temperatureComparison}
       </button>${opened?compareDetails(a,b,i):''}</div>`;
   }).join('');
-  $('compareNote').textContent='Jeder Monat enthält zwei getrennte Balken mit exakten kWh-Werten. Prozentwerte erscheinen nur bei zwei vollständigen Monatswerten. Fehlende oder laufende Monate zählen nicht als Einsparung.';
+  $('compareNote').textContent='Neben jedem Balken stehen der Gasverbrauch in kWh und die Ø Außentemperatur. Der Temperaturunterschied wird in °C angezeigt. Fehlende Werte bleiben leer; Einsparungen werden nur aus vollständig erfassten Monaten berechnet.';
 }
 function setTab(value){
   if(!['year','compare','data'].includes(value))return;
@@ -221,7 +230,7 @@ function attach(){
 }
 function registerSW(){
   if(!('serviceWorker'in navigator))return;
-  navigator.serviceWorker.register('./sw.js?v=4.0.0').catch(()=>{});
+  navigator.serviceWorker.register('./sw.js?v=4.1.0').catch(()=>{});
 }
 window.addEventListener('error',event=>error('App-Fehler: '+event.message));
 window.addEventListener('unhandledrejection',event=>error('Unerwarteter Fehler: '+(event.reason?.message||String(event.reason))));

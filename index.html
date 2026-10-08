@@ -8,8 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Private, lokale Buderus-Verbrauchshistorie mit Monats- und Jahresvergleich.">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="manifest" href="manifest.webmanifest?v=4.0.0">
-  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <link rel="manifest" href="manifest.webmanifest?v=4.1.0">
+  <link rel="stylesheet" href="styles.css?v=4.1.0">
   <title>Buderus · Energiemonitor</title>
 </head>
 <body>
@@ -44,6 +44,7 @@
       </div>
       <div class="compare-summary" id="compareSummary"></div>
       <div class="legend"><span><i class="legend-dot current"></i><span id="legendCurrent">Neueres Jahr</span></span><span><i class="legend-dot previous"></i><span id="legendPrevious">Älteres Jahr</span></span></div>
+      <p class="compare-temperature-hint">Balken: Gasverbrauch · <span>Ø Außentemperatur</span> steht rechts bei jedem Jahr</p>
       <div class="comparison-list" id="comparisonList"></div>
       <p class="helper" id="compareNote"></p>
     </section>
@@ -66,6 +67,6 @@
     <div class="global-error" id="globalError" role="alert" hidden></div>
     <footer class="footer"><span id="saveLabel">Nur auf diesem Gerät</span><span id="versionLabel">Version wird geladen …</span></footer>
   </main>
-  <script type="module" src="app.mjs?v=4.0.0"></script>
+  <script type="module" src="app.mjs?v=4.1.0"></script>
 </body>
 </html>

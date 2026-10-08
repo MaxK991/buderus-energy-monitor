@@ -1,6 +1,6 @@
 /* Network first for releases, offline fallback for already cached application files. */
-const CACHE='buderus-monitor-v4.0.0';
-const ASSETS=['./','./index.html','./styles.css?v=4.0.0','./app.mjs?v=4.0.0','./engine.mjs','./manifest.webmanifest?v=4.0.0','./icon.svg'];
+const CACHE='buderus-monitor-v4.1.0';
+const ASSETS=['./','./index.html','./styles.css?v=4.1.0','./app.mjs?v=4.1.0','./engine.mjs','./manifest.webmanifest?v=4.1.0','./icon.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
   const keys=await caches.keys();
