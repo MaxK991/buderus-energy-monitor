@@ -1,4 +1,4 @@
-const APP_VERSION="v3.5.0";
+const APP_VERSION="v3.6.0";
 const DB_KEY="buderus_energy_v2";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -147,11 +147,16 @@ function renderChart(y){
 
 function renderYear(){
   setHeroMode("year");
+  const chartWrap=document.querySelector(".chart-wrap"), legend=document.querySelector(".legend");
+  if(chartWrap) chartWrap.classList.add("year-hidden");
+  if(legend) legend.classList.add("year-hidden");
   const arr=monthly(currentYear),max=Math.max(...arr.map(x=>+x.gas||0),1);
   $("#yearTotal").textContent=fmt(total(currentYear))+" kWh";
   $("#yearView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">${currentYear}</div><h2>Monatlicher Verbrauch</h2></div><div class="muted">Gas</div></div>`+
-    arr.map(x=>`<div class="month-row"><strong>${months[x.month-1]}</strong><div class="bar-bg"><div class="bar" style="width:${Math.max(0,(x.gas/max)*100)}%"></div></div><div class="value">${fmt(+x.gas||0)} kWh</div></div>`).join("");
-  renderChart(currentYear);
+    arr.map(x=>`<div class="month-row"><strong>${months[x.month-1]}</strong><div class="bar-bg"><div class="bar" style="width:${Math.max(0,(x.gas/max)*100)}%"></div></div><div class="value"><b>${fmt(+x.gas||0)} kWh</b><span class="month-temp">${x.out!=null?`Ø ${fmt(x.out)} °C`:""}</span></div></div>`).join("");
+  const chartHost=$("#consumptionChart"), selection=$("#chartSelection");
+  if(chartHost) chartHost.innerHTML="";
+  if(selection) selection.innerHTML="";
 }
 
 
@@ -180,6 +185,9 @@ function setHeroMode(mode, yearsToCompare=[]){
 }
 
 function renderComparisonTop(){
+  const chartWrap=document.querySelector(".chart-wrap"), legend=document.querySelector(".legend");
+  if(chartWrap) chartWrap.classList.remove("year-hidden");
+  if(legend) legend.classList.remove("year-hidden");
   const all=years().filter(y=>y<=currentYear).sort((a,b)=>b-a);
   const host=$("#consumptionChart"), selection=$("#chartSelection");
   if(!host)return;
@@ -303,4 +311,4 @@ populateYears();
 renderYear();
 renderCompare();
 if(importedFiles) save();
-if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js?v=3.5.0");
+if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js?v=3.6.0");

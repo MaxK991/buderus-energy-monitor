@@ -61,3 +61,14 @@ body{overflow-x:hidden}
 .chart-bar.compare-b{fill:#d8d3e8}
 .chart-bar.compare-a.selected,.chart-bar.compare-b.selected{stroke:#25a9e8;stroke-width:2}
 .compare-empty{height:100%;display:grid;place-items:center;text-align:center;color:#aaa;padding:20px}
+
+/* v3.6: clean annual view; comparison chart stays in the hero */
+.year-hidden{display:none!important}
+.month-row .value{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.month-temp{font-size:11px;color:#25a9e8;font-weight:500}
+@media(max-width:650px){
+  .hero-card:has(.year-hidden) .hero-row{padding-bottom:2px}
+  .hero-card:has(.year-hidden){padding-bottom:16px}
+  .month-row{min-height:52px}
+  .month-temp{font-size:10px}
+}
