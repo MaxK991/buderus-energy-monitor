@@ -1,4 +1,4 @@
-const APP_VERSION="v3.3.0";
+const APP_VERSION="v3.4.0";
 const DB_KEY="buderus_energy_v2";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -85,10 +85,10 @@ function total(y){return monthly(y).reduce((s,x)=>s+(+x.gas||0),0)}
 function years(){return [...new Set(data.map(x=>x.year))].sort((a,b)=>b-a)}
 
 function renderChart(y){
-  const host=$("#consumptionChart");
+  const host=$("#consumptionChart"), selection=$("#chartSelection");
   if(!host)return;
   const arr=monthly(y);
-  const W=760,H=350,pad={l:52,r:52,t:18,b:48};
+  const W=760,H=320,pad={l:52,r:52,t:14,b:42};
   const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
   const max=Math.max(...arr.map(x=>+x.gas||0),1);
   const temps=arr.map(x=>x.out).filter(x=>x!=null&&Number.isFinite(+x));
@@ -107,43 +107,42 @@ function renderChart(y){
   if(temps.length){
     for(let i=0;i<=2;i++){
       const v=tmin+(tmax-tmin)*i/2, yy=ty(v);
-      s+=`<text class="chart-temp-axis" x="${W-pad.r+7}" y="${yy+4}" text-anchor="start">${esc(Math.round(v))}°</text>`;
+      s+=`<text class="chart-temp-axis" x="${W-pad.r+7}" y="${yy+4}" text-anchor="start">${Math.round(v)}°</text>`;
     }
   }
   const points=[];
   arr.forEach((x,i)=>{
-    const x0=pad.l+i*(bw+gap);
-    const bh=((+x.gas||0)/max)*ch;
+    const x0=pad.l+i*(bw+gap), bh=((+x.gas||0)/max)*ch;
     s+=`<rect class="chart-bar" data-index="${i}" x="${x0}" y="${pad.t+ch-bh}" width="${bw}" height="${Math.max(0,bh)}" rx="4" tabindex="0" role="button" aria-label="${months[i]} ${y}: ${fmt(+x.gas||0)} kWh${x.out!=null?`, Außentemperatur ${fmt(x.out)} °C`:""}"/>`;
-    s+=`<text class="chart-label" x="${x0+bw/2}" y="${H-14}" text-anchor="middle">${months[i]}</text>`;
-    if(x.out!=null&&Number.isFinite(+x.out)) points.push(`${x0+bw/2},${ty(+x.out)}`);
+    s+=`<text class="chart-label" x="${x0+bw/2}" y="${H-12}" text-anchor="middle">${months[i]}</text>`;
+    if(x.out!=null&&Number.isFinite(+x.out))points.push(`${x0+bw/2},${ty(+x.out)}`);
   });
   if(points.length){
     s+=`<polyline class="chart-temp" points="${points.join(" ")}"/>`;
     arr.forEach((x,i)=>{
       if(x.out!=null&&Number.isFinite(+x.out)){
         const x0=pad.l+i*(bw+gap);
-        s+=`<circle class="chart-temp-dot" data-index="${i}" cx="${x0+bw/2}" cy="${ty(+x.out)}" r="4" tabindex="0" role="button" aria-label="${months[i]} ${y}: Außentemperatur ${fmt(x.out)} °C"/>`;
+        s+=`<circle class="chart-temp-dot" data-index="${i}" cx="${x0+bw/2}" cy="${ty(+x.out)}" r="4.5" tabindex="0" role="button" aria-label="${months[i]} ${y}: Außentemperatur ${fmt(x.out)} °C"/>`;
       }
     });
   }
-  s+="</svg><div class=\"chart-tooltip\" id=\"chartTooltip\" aria-live=\"polite\"></div>";
+  s+="</svg>";
   host.innerHTML=s;
 
-  const tooltip=$("#chartTooltip");
   const show=i=>{
     const x=arr[i]; if(!x)return;
     host.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected"));
     host.querySelectorAll(`[data-index="${i}"]`).forEach(el=>el.classList.add("selected"));
-    tooltip.innerHTML=`<strong>${months[i]} ${y}</strong><span>Gas: <b>${fmt(+x.gas||0)} kWh</b></span>${x.out!=null?`<span class="temp">Außentemperatur: <b>${fmt(x.out)} °C</b></span>`:"<span>Außentemperatur: keine Daten</span>"}`;
-    tooltip.style.display="block";
-    clearTimeout(window.__buderusTooltipTimer);
-    window.__buderusTooltipTimer=setTimeout(()=>{tooltip.style.display="none";host.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected"));},5000);
+    if(selection){
+      selection.innerHTML=`<strong>${months[i]} ${y}</strong><div class="detail-grid"><span class="detail-item">Gas: <b>${fmt(+x.gas||0)} kWh</b></span><span class="detail-item temp">Außentemperatur: <b>${x.out!=null?fmt(x.out)+" °C":"keine Daten"}</b></span>${x.heating!=null?`<span class="detail-item">Heizung: <b>${fmt(x.heating)} kWh</b></span>`:""}${x.hotWater!=null?`<span class="detail-item">Warmwasser: <b>${fmt(x.hotWater)} kWh</b></span>`:""}</div>`;
+    }
   };
   host.querySelectorAll("[data-index]").forEach(el=>{
     el.addEventListener("click",()=>show(+el.dataset.index));
     el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();show(+el.dataset.index)}});
   });
+  const first=arr.findIndex(x=>(+x.gas||0)>0||x.out!=null);
+  if(first>=0)show(first);
 }
 
 function renderYear(){
@@ -155,13 +154,45 @@ function renderYear(){
 }
 
 function renderCompare(){
-  const ys=years().filter(y=>y<=currentYear).slice(0,2);
-  if(ys.length<2){$("#compareView").innerHTML=`<h2>Jahresvergleich</h2><p class="muted">Importiere mindestens zwei Jahre, um die Jahre vergleichen zu können.</p>`;return}
-  const a=total(ys[0]),b=total(ys[1]),diff=b?((a-b)/b*100):0;
-  $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">VERGLEICH</div><h2>${ys[0]} vs. ${ys[1]}</h2></div></div>
-  <div class="compare-grid"><div class="metric"><span>${ys[0]}</span><strong>${fmt(a)} kWh</strong></div><div class="metric"><span>${ys[1]}</span><strong>${fmt(b)} kWh</strong></div><div class="metric"><span>Veränderung</span><strong>${diff>0?"+":""}${diff.toFixed(1).replace(".",",")} %</strong></div></div>
-  ${months.map((m,i)=>{let va=monthly(ys[0])[i].gas,vb=monthly(ys[1])[i].gas;let p=vb?((va-vb)/vb*100):0;return `<div class="month-row"><strong>${m}</strong><div class="muted">${fmt(va)} / ${fmt(vb)} kWh</div><div class="value">${p>0?"+":""}${p.toFixed(1).replace(".",",")}%</div></div>`}).join("")}`;
+  const all=years().filter(y=>y<=currentYear);
+  if(all.length<2){
+    $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">VERGLEICH</div><h2>Mehrjahresvergleich</h2></div></div><p class="muted">Importiere mindestens zwei Jahre, um Einsparungen und Monatsverläufe direkt gegenüberzustellen.</p>`;
+    return;
+  }
+  const ys=all.slice(0,4).reverse(); // oldest -> newest, max. 4 years
+  const latestMonth=Math.max(1,...monthly(currentYear).map((x,i)=>(x.gas>0||x.out!=null)?i+1:0));
+  const current=totalToMonth(currentYear,latestMonth);
+  const previous=ys.filter(y=>y!==currentYear).map(y=>({y,total:totalToMonth(y,latestMonth)}));
+  const baseline=previous.length?previous[previous.length-1].total:0;
+  const savings=baseline?((baseline-current)/baseline*100):0;
+
+  const W=760,H=280,pad={l:48,r:18,t:18,b:36},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const max=Math.max(1,...ys.flatMap(y=>monthly(y).map(x=>+x.gas||0)));
+  const palette=["#9b94b5","#c8c1dc","#25a9e8","#f2a65a"];
+  const lines=ys.map((y,yi)=>{
+    const pts=monthly(y).map((x,i)=>`${pad.l+(i/11)*cw},${pad.t+ch-(x.gas/max)*ch}`).join(" ");
+    return `<polyline class="line" style="stroke:${palette[yi]}" points="${pts}"/>`+
+      monthly(y).map((x,i)=>`<circle class="dot" style="fill:${palette[yi]}" cx="${pad.l+(i/11)*cw}" cy="${pad.t+ch-(x.gas/max)*ch}" r="3.5"><title>${y} · ${months[i]}: ${fmt(x.gas)} kWh</title></circle>`).join("");
+  }).join("");
+  let grid="";
+  for(let i=0;i<=4;i++){
+    const v=max*(1-i/4),yy=pad.t+ch-(v/max)*ch;
+    grid+=`<line class="grid" x1="${pad.l}" x2="${W-pad.r}" y1="${yy}" y2="${yy}"/><text class="axis" x="${pad.l-6}" y="${yy+4}" text-anchor="end">${fmt(v)}</text>`;
+  }
+  months.forEach((m,i)=>{grid+=`<text class="axis" x="${pad.l+(i/11)*cw}" y="${H-10}" text-anchor="middle">${m}</text>`});
+  const summaryLabel=latestMonth===12?"Jahresvergleich":"Vergleich bis "+months[latestMonth-1];
+  $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">MEHRJAHRESVERGLEICH</div><h2>Verbrauch auf einen Blick</h2></div><div class="muted">${summaryLabel}</div></div>
+  <div class="compare-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Mehrjahresvergleich">${grid}${lines}</svg></div>
+  <div class="compare-legend">${ys.map((y,i)=>`<span><i class="dot" style="background:${palette[i]}"></i>${y}</span>`).join("")}</div>
+  <div class="compare-summary">
+    <div class="metric"><span>${currentYear} bis ${months[latestMonth-1]}</span><strong>${fmt(current)} kWh</strong></div>
+    <div class="metric"><span>Vergleich ${ys.find(y=>y!==currentYear)||""}</span><strong>${baseline?fmt(baseline)+" kWh":"–"}</strong></div>
+    <div class="metric"><span>${savings>=0?"Einsparung":"Mehrverbrauch"}</span><strong>${baseline?`${savings>=0?"−":"+"}${Math.abs(savings).toFixed(1).replace(".",",")} %`:"–"}</strong></div>
+  </div>
+  <div class="panel-head" style="margin-top:18px"><div><div class="eyebrow">MONATLICH</div><h2>Exakte Werte</h2></div></div>
+  ${months.map((m,i)=>`<div class="month-row"><strong>${m}</strong><div class="muted">${ys.map(y=>`${y}: ${fmt(monthly(y)[i].gas)} kWh`).join(" · ")}</div><div class="value">${i+1<=latestMonth?"":"–"}</div></div>`).join("")}`;
 }
+function totalToMonth(y,m){return monthly(y).slice(0,m).reduce((s,x)=>s+(+x.gas||0),0)}
 
 $("#yearSelect").addEventListener("change",e=>{currentYear=+e.target.value;renderYear();renderCompare()});
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{

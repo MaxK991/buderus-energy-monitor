@@ -43,3 +43,15 @@ body{overflow-x:hidden}
   .hero-total strong{font-size:20px}
   .month-row{grid-template-columns:38px minmax(0,1fr) 70px}
 }
+
+/* v3.4 mobile-first refinement */
+@media(max-width:650px){
+  .hero-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}
+  .hero-total{min-width:0}
+  .hero-total strong{font-size:22px;letter-spacing:-.4px}
+  .panel-head h2{line-height:1.05}
+  .panel{overflow:hidden}
+}
+@media(max-width:380px){
+  .hero-total strong{font-size:19px}
+}
