@@ -1,4 +1,4 @@
-const APP_VERSION="v3.0.4";
+const APP_VERSION="v3.0.5";
 const DB_KEY="buderus_energy_v1";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -17,8 +17,11 @@ function populateYears(){
   $("#yearSelect").innerHTML=ys.map(y=>`<option ${y===currentYear?"selected":""}>${y}</option>`).join("");
 }
 function drawChart(y){
-  const c=$("#consumptionChart"),ctx=c.getContext("2d"),dpr=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
-  c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+  const c=$("#consumptionChart"),ctx=c.getContext("2d"),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
+  c.width=Math.max(1,Math.floor(w*dpr));c.height=Math.max(1,Math.floor(h*dpr));
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
   const arr=monthly(y),max=Math.max(...arr.map(x=>+x.gas||0),1),pad={l:42,r:10,t:12,b:36},cw=(w-pad.l-pad.r)/12;
   ctx.strokeStyle="#3b3b3b";ctx.lineWidth=1;
   for(let k=0;k<=4;k++){let yy=pad.t+(h-pad.t-pad.b)*k/4;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.fillStyle="#777";ctx.font="11px sans-serif";ctx.fillText(fmt(max*(1-k/4)),4,yy+4)}
@@ -117,4 +120,4 @@ window.addEventListener("resize",()=>drawChart(currentYear));
 populateYears();
 renderYear();
 renderCompare();
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js?v=3.0.5");
