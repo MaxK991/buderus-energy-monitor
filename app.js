@@ -36,7 +36,11 @@ function renderCompare(){
 }
 function num(v){
   if(v==null || v==="" || v==="-" ) return null;
-  return Number(String(v).trim().replace(/\./g,"").replace(",","."));
+  const s=String(v).trim().replace(/\u00a0/g,"");
+  // Buderus exports German decimals (e.g. 4.335,2) but may also contain
+  // plain integers/decimal values without a comma (e.g. 14.8).
+  if(s.includes(",")) return Number(s.replace(/\./g,"").replace(",","."));
+  return Number(s);
 }
 function parseCSV(text){
   const lines=text.replace(/^\uFEFF/,"").trim().split(/\r?\n/);
@@ -47,13 +51,13 @@ function parseCSV(text){
     if(c.length<8) continue;
     const kind=c[0].trim(), ts=c[1].trim();
     if(!["Stunde","Tag","Monat"].includes(kind)) continue;
-    if(kind==="Stunde" && ts.length<13) continue;
+    if(!/^\d{4}-\d{2}(?:-\d{2})?(?:T\d{2}:\d{2})?$/.test(ts)) continue;
     const id=`${kind}|${ts}`;
     rows.push({
       id, kind, timestamp:ts,
       year:+ts.slice(0,4), month:+ts.slice(5,7),
       day:ts.length>=10?+ts.slice(8,10):null,
-      hour:kind==="Stunde"?+ts.slice(11,13):null,
+      hour:kind==="Stunde"&&ts.length>=13?+ts.slice(11,13):null,
       gas:num(c[2]), heating:num(c[3]), hotWater:num(c[4]),
       outside:num(c[5]), room:num(c[6]), waterTemp:num(c[7])
     });
@@ -77,8 +81,35 @@ function years(){return [...new Set(data.filter(x=>x.kind==="Monat").map(x=>x.ye
 
 $("#yearSelect").addEventListener("change",e=>{currentYear=+e.target.value;renderYear();renderCompare()});
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");["yearView","compareView","dataView"].forEach(id=>$("#"+id).classList.add("hidden"));$("#"+({year:"yearView",compare:"compareView",data:"dataView"}[b.dataset.view])).classList.remove("hidden");}));
-$("#csvInput").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const rows=parseCSV(await f.text());for(const r of rows){data=data.filter(x=>!(x.year===r.year&&x.month===r.month));data.push(r)}data.sort((a,b)=>a.year-b.year||a.month-b.month);save();load().then(()=>{populateYears();renderYear();renderCompare();});$("#importStatus").textContent=`${rows.length} Monatswerte importiert.`}catch(err){$("#importStatus").textContent=err.message}});
-$("#clearBtn").addEventListener("click",()=>{if(confirm("Alle lokal gespeicherten Heizungsdaten löschen?")){data=[];save().then(()=>{populateYears();renderYear();renderCompare()});renderYear();renderCompare()}});
+$("#csvInput").addEventListener("change",async e=>{
+  const f=e.target.files[0];
+  if(!f) return;
+  try{
+    const rows=parseCSV(await f.text());
+    const map=new Map(data.map(x=>[x.id,x]));
+    rows.forEach(r=>map.set(r.id,r));
+    data=[...map.values()].sort((a,b)=>a.timestamp.localeCompare(b.timestamp)||a.kind.localeCompare(b.kind));
+    save();
+    populateYears();
+    renderYear();
+    renderCompare();
+    $("#importStatus").textContent=`${rows.length} Buderus-Datensätze importiert.`;
+  }catch(err){
+    $("#importStatus").textContent=`Importfehler: ${err.message}`;
+  }
+});
+$("#clearBtn").addEventListener("click",()=>{
+  if(confirm("Alle lokal gespeicherten Heizungsdaten löschen?")){
+    data=[];
+    save();
+    populateYears();
+    renderYear();
+    renderCompare();
+  }
+});
 window.addEventListener("resize",()=>drawChart(currentYear));
-load().then(()=>{populateYears();renderYear();renderCompare();});
+// load() is synchronous (localStorage). Do not call .then() on it.
+populateYears();
+renderYear();
+renderCompare();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
