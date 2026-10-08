@@ -1,8 +1,12 @@
+const APP_VERSION="v3.0.1";
 const DB_KEY="buderus_energy_v1";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 let data=load();
 let currentYear=new Date().getFullYear();
+
+const versionEl=document.getElementById("appVersion");
+if(versionEl) versionEl.textContent=`Version ${APP_VERSION}`;
 
 function load(){try{return JSON.parse(localStorage.getItem(DB_KEY)||"[]")}catch{return[]}}
 function save(){localStorage.setItem(DB_KEY,JSON.stringify(data));$("#lastUpdated").textContent="Gespeichert: "+new Date().toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}

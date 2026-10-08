@@ -37,3 +37,7 @@ Der Export `EnergyData_...csv` wurde analysiert. Das Format ist UTF-8, Semikolon
 Die App v2 erkennt diese Ebenen direkt, speichert sie getrennt und dedupliziert über `Kategorie + Zeitstempel`. Dadurch kann derselbe MyBuderus-Gesamtexport regelmäßig importiert werden, ohne Duplikate zu erzeugen.
 
 Wichtig: Der konkrete Export vom 08.10.2026 enthält Monatswerte ab Oktober 2025; Januar–September 2025 sind bereits mit `-` gekennzeichnet. Die langfristige Historie kann daher erst ab dem Zeitpunkt aufgebaut werden, an dem die Exporte regelmäßig gesichert werden.
+
+
+## Versionierung
+Aktuelle Version: **v3.0.1**. Die Versionsnummer wird unten auf der Website angezeigt. Bei jeder veröffentlichten Änderung sollte die Versionsnummer erhöht und der Service-Worker-Cache ebenfalls aktualisiert werden.
