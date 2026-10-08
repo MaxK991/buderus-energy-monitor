@@ -55,7 +55,7 @@
         </div>
       </div>
       <div class="chart-wrap">
-        <canvas id="consumptionChart"></canvas>
+        <div id="consumptionChart" class="responsive-chart" aria-label="Jahresverbrauch und Außentemperatur"></div>
       </div>
       <div class="legend">
         <span><i class="dot gas"></i>Gas-Brennwertgerät</span>
@@ -79,12 +79,12 @@
         </div>
         <button id="clearBtn" class="danger">Alle Daten löschen</button>
       </div>
-      <p class="muted">Die Daten werden lokal auf dem Gerät gespeichert. Der originale MyBuderus-Gesamtexport kann direkt importiert werden.</p>
+      <p class="muted">Die Daten werden lokal auf dem Gerät gespeichert. Mehrere MyBuderus-CSV-Dateien können gleichzeitig importiert werden. Die Daten werden zusammengeführt und Dubletten automatisch erkannt.</p>
       <label class="upload">
         <span>CSV importieren</span>
-        <input id="csvInput" type="file" accept=".csv,text/csv">
+        <input id="csvInput" type="file" accept=".csv,text/csv" multiple>
       </label>
-      <div id="importStatus" class="status"></div>
+      <div id="importStatus" class="status"></div><div id="importFiles" class="muted small"></div>
       <details>
         <summary>CSV-Format</summary>
         <pre>MyBuderus-Gesamtexport (EnergyData_*.csv)</pre>
@@ -94,7 +94,7 @@
     <footer>
       <span>Lokale Historie · 24+ Monate</span>
       <span id="lastUpdated">Noch keine Daten</span>
-      <span class="app-version" id="appVersion">Version v3.1.0</span>
+      <span class="app-version" id="appVersion">Version v3.2.0</span>
     </footer>
   </main>
   <script src="app.js?v=3.0.5"></script>

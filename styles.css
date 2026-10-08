@@ -3,3 +3,9 @@
 
 .app-version{opacity:.8;white-space:nowrap}
 @media(max-width:650px){footer{flex-wrap:wrap}.app-version{width:100%;text-align:right}}
+
+.small{font-size:.86rem}
+.responsive-chart .chart-temp{fill:none;stroke:#25a9e8;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.responsive-chart .chart-temp-dot{fill:#25a9e8}
+.responsive-chart .chart-temp-axis{fill:#25a9e8;font-size:11px}
+.responsive-chart .chart-bar{fill:#d8d3e8}
