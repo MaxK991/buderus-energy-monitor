@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#171717">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Buderus Energy Monitor</title>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">ENERGIEMONITORING</div>
+        <h1>Wärmeerzeuger</h1>
+      </div>
+      <button id="installBtn" class="icon-btn" hidden aria-label="App installieren">＋</button>
+    </header>
+
+    <section class="hero-card">
+      <div class="hero-row">
+        <div>
+          <label for="yearSelect">Jahr</label>
+          <select id="yearSelect"></select>
+        </div>
+        <div class="hero-total">
+          <span>Jahresverbrauch</span>
+          <strong id="yearTotal">0 kWh</strong>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="consumptionChart"></canvas>
+      </div>
+      <div class="legend">
+        <span><i class="dot gas"></i>Gas-Brennwertgerät</span>
+        <span><i class="dot temp"></i>Außentemperatur</span>
+      </div>
+    </section>
+
+    <section class="controls">
+      <button class="tab active" data-view="year">Jahresansicht</button>
+      <button class="tab" data-view="compare">Jahresvergleich</button>
+      <button class="tab" data-view="data">Daten</button>
+    </section>
+
+    <section id="yearView" class="panel"></section>
+    <section id="compareView" class="panel hidden"></section>
+    <section id="dataView" class="panel hidden">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">DATENVERWALTUNG</div>
+          <h2>Eigene Historie</h2>
+        </div>
+        <button id="clearBtn" class="danger">Alle Daten löschen</button>
+      </div>
+      <p class="muted">Die Daten werden lokal auf dem Gerät gespeichert. Der originale MyBuderus-Gesamtexport kann direkt importiert werden.</p>
+      <label class="upload">
+        <span>CSV importieren</span>
+        <input id="csvInput" type="file" accept=".csv,text/csv">
+      </label>
+      <div id="importStatus" class="status"></div>
+      <details>
+        <summary>CSV-Format</summary>
+        <pre>MyBuderus-Gesamtexport (EnergyData_*.csv)</pre>
+      </details>
+    </section>
+
+    <footer>
+      <span>Lokale Historie · 24+ Monate</span>
+      <span id="lastUpdated">Noch keine Daten</span>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
