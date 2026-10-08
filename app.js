@@ -1,7 +1,8 @@
-const APP_VERSION="v3.0.2";
+const APP_VERSION="v3.0.3";
 const DB_KEY="buderus_energy_v1";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+function fmt(v){return new Intl.NumberFormat("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1}).format(Number(v)||0)}
 let data=load();
 let currentYear=new Date().getFullYear();
 
