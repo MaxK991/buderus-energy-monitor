@@ -1,4 +1,4 @@
-const APP_VERSION="v3.0.5";
+const APP_VERSION="v3.1.0";
 const DB_KEY="buderus_energy_v1";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -121,3 +121,67 @@ populateYears();
 renderYear();
 renderCompare();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js?v=3.0.5");
+
+
+// v3.1.0 — responsive SVG chart; avoids iOS/Retina canvas scaling issues.
+function renderYearChartResponsive(rows){
+  const host=document.getElementById("yearChart");
+  if(!host) return;
+  const data=(rows||[]).filter(r=>Number.isFinite(Number(r.value)));
+  if(!data.length){ host.innerHTML=""; return; }
+
+  const W=720,H=300;
+  const pad={l:54,r:12,t:18,b:42};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const max=Math.max(...data.map(d=>Number(d.value)),1);
+  const n=data.length;
+  const gap=Math.max(8, Math.min(18, cw/(n*6)));
+  const bw=Math.max(8,(cw-gap*(n-1))/n);
+
+  const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  const y=v=>pad.t+ch-(v/max)*ch;
+  let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Monatlicher Verbrauch">`;
+
+  const ticks=4;
+  for(let i=0;i<=ticks;i++){
+    const v=max*i/ticks, yy=y(v);
+    s+=`<line class="chart-grid" x1="${pad.l}" x2="${W-pad.r}" y1="${yy}" y2="${yy}"/>`;
+    const label=Number(v).toLocaleString("de-DE",{maximumFractionDigits:1});
+    s+=`<text class="chart-axis" x="${pad.l-8}" y="${yy+4}" text-anchor="end">${esc(label)}</text>`;
+  }
+
+  data.forEach((d,i)=>{
+    const v=Number(d.value);
+    const x=pad.l+i*(bw+gap);
+    const yy=y(v);
+    const hh=pad.t+ch-yy;
+    s+=`<rect class="chart-bar" x="${x}" y="${yy}" width="${bw}" height="${Math.max(0,hh)}" rx="5"/>`;
+    s+=`<text class="chart-label" x="${x+bw/2}" y="${H-14}" text-anchor="middle">${esc(d.label)}</text>`;
+  });
+  s+="</svg>";
+  host.innerHTML=s;
+}
+
+// Keep compatibility with the existing app: any canvas renderer can call this.
+window.renderYearChartResponsive=renderYearChartResponsive;
+
+
+(function(){
+  function collectYearData(){
+    const candidates=[...document.querySelectorAll('[data-month-value],[data-value]')];
+    const rows=[];
+    candidates.forEach(el=>{
+      const v=Number(String(el.dataset.monthValue||el.dataset.value||"").replace(/\./g,"").replace(",","."));
+      if(Number.isFinite(v)) rows.push({label:el.dataset.month||el.textContent.trim().slice(0,3),value:v});
+    });
+    return rows;
+  }
+  function tryRender(){
+    const host=document.getElementById("yearChart");
+    if(!host) return;
+    const rows=collectYearData();
+    if(rows.length) window.renderYearChartResponsive(rows);
+  }
+  window.addEventListener("resize",tryRender);
+  setTimeout(tryRender,100);
+})();
