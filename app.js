@@ -1,4 +1,4 @@
-const APP_VERSION="v3.4.0";
+const APP_VERSION="v3.5.0";
 const DB_KEY="buderus_energy_v2";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -146,6 +146,7 @@ function renderChart(y){
 }
 
 function renderYear(){
+  setHeroMode("year");
   const arr=monthly(currentYear),max=Math.max(...arr.map(x=>+x.gas||0),1);
   $("#yearTotal").textContent=fmt(total(currentYear))+" kWh";
   $("#yearView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">${currentYear}</div><h2>Monatlicher Verbrauch</h2></div><div class="muted">Gas</div></div>`+
@@ -153,45 +154,103 @@ function renderYear(){
   renderChart(currentYear);
 }
 
-function renderCompare(){
-  const all=years().filter(y=>y<=currentYear);
+
+function setHeroMode(mode, yearsToCompare=[]){
+  const label=document.querySelector(".hero-total span");
+  const total=$("#yearTotal");
+  const yearLabel=document.querySelector('label[for="yearSelect"]');
+  const legend=document.querySelector(".legend");
+  if(mode==="compare"){
+    if(yearLabel) yearLabel.textContent="Vergleichsjahre";
+    if(label) label.textContent=yearsToCompare.length>1?`${yearsToCompare[1]} vs. ${yearsToCompare[0]}`:"Jahresvergleich";
+    if(total && yearsToCompare.length>1){
+      const a=totalToMonth(yearsToCompare[1],12), b=totalToMonth(yearsToCompare[0],12);
+      const pct=b?((a-b)/b*100):0;
+      total.textContent=`${pct>=0?"+":""}${pct.toFixed(1).replace(".",",")} %`;
+    }
+    if(legend && yearsToCompare.length>1){
+      legend.innerHTML=`<span><i class="dot gas"></i>${yearsToCompare[1]}</span><span><i class="dot" style="background:#9b94b5"></i>${yearsToCompare[0]}</span>`;
+    }
+  }else{
+    if(yearLabel) yearLabel.textContent="Jahr";
+    if(label) label.textContent="Jahresverbrauch";
+    if(total) total.textContent=fmt(totalToMonth(currentYear,12))+" kWh";
+    if(legend) legend.innerHTML=`<span><i class="dot gas"></i>Gas-Brennwertgerät</span><span><i class="dot temp"></i>Außentemperatur</span>`;
+  }
+}
+
+function renderComparisonTop(){
+  const all=years().filter(y=>y<=currentYear).sort((a,b)=>b-a);
+  const host=$("#consumptionChart"), selection=$("#chartSelection");
+  if(!host)return;
   if(all.length<2){
-    $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">VERGLEICH</div><h2>Mehrjahresvergleich</h2></div></div><p class="muted">Importiere mindestens zwei Jahre, um Einsparungen und Monatsverläufe direkt gegenüberzustellen.</p>`;
+    setHeroMode("compare",all);
+    host.innerHTML=`<div class="compare-empty">Importiere mindestens zwei Jahre für den direkten Balkenvergleich.</div>`;
+    if(selection) selection.innerHTML=`<span class="muted">Es sind noch nicht genügend Jahre vorhanden.</span>`;
     return;
   }
-  const ys=all.slice(0,4).reverse(); // oldest -> newest, max. 4 years
-  const latestMonth=Math.max(1,...monthly(currentYear).map((x,i)=>(x.gas>0||x.out!=null)?i+1:0));
-  const current=totalToMonth(currentYear,latestMonth);
-  const previous=ys.filter(y=>y!==currentYear).map(y=>({y,total:totalToMonth(y,latestMonth)}));
-  const baseline=previous.length?previous[previous.length-1].total:0;
-  const savings=baseline?((baseline-current)/baseline*100):0;
+  const ys=[all[1],all[0]]; // previous, current
+  setHeroMode("compare",ys);
 
-  const W=760,H=280,pad={l:48,r:18,t:18,b:36},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
-  const max=Math.max(1,...ys.flatMap(y=>monthly(y).map(x=>+x.gas||0)));
-  const palette=["#9b94b5","#c8c1dc","#25a9e8","#f2a65a"];
-  const lines=ys.map((y,yi)=>{
-    const pts=monthly(y).map((x,i)=>`${pad.l+(i/11)*cw},${pad.t+ch-(x.gas/max)*ch}`).join(" ");
-    return `<polyline class="line" style="stroke:${palette[yi]}" points="${pts}"/>`+
-      monthly(y).map((x,i)=>`<circle class="dot" style="fill:${palette[yi]}" cx="${pad.l+(i/11)*cw}" cy="${pad.t+ch-(x.gas/max)*ch}" r="3.5"><title>${y} · ${months[i]}: ${fmt(x.gas)} kWh</title></circle>`).join("");
-  }).join("");
-  let grid="";
+  const arrA=monthly(ys[0]), arrB=monthly(ys[1]);
+  const max=Math.max(1,...arrA.flatMap((x,i)=>[+x.gas||0,+arrB[i].gas||0]));
+  const W=760,H=320,pad={l:52,r:52,t:14,b:42},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const groupGap=7, groupW=cw/12, barGap=3, barW=Math.max(5,(groupW-groupGap-barGap)/2);
+  const gy=v=>pad.t+ch-(v/max)*ch;
+  const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Vergleich ${ys[1]} und ${ys[0]}">`;
   for(let i=0;i<=4;i++){
-    const v=max*(1-i/4),yy=pad.t+ch-(v/max)*ch;
-    grid+=`<line class="grid" x1="${pad.l}" x2="${W-pad.r}" y1="${yy}" y2="${yy}"/><text class="axis" x="${pad.l-6}" y="${yy+4}" text-anchor="end">${fmt(v)}</text>`;
+    const v=max*(1-i/4),yy=gy(v);
+    s+=`<line class="chart-grid" x1="${pad.l}" x2="${W-pad.r}" y1="${yy}" y2="${yy}"/>`;
+    s+=`<text class="chart-axis" x="${pad.l-7}" y="${yy+4}" text-anchor="end">${esc(fmt(v))}</text>`;
   }
-  months.forEach((m,i)=>{grid+=`<text class="axis" x="${pad.l+(i/11)*cw}" y="${H-10}" text-anchor="middle">${m}</text>`});
-  const summaryLabel=latestMonth===12?"Jahresvergleich":"Vergleich bis "+months[latestMonth-1];
-  $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">MEHRJAHRESVERGLEICH</div><h2>Verbrauch auf einen Blick</h2></div><div class="muted">${summaryLabel}</div></div>
-  <div class="compare-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Mehrjahresvergleich">${grid}${lines}</svg></div>
-  <div class="compare-legend">${ys.map((y,i)=>`<span><i class="dot" style="background:${palette[i]}"></i>${y}</span>`).join("")}</div>
+  months.forEach((m,i)=>{
+    const gx=pad.l+i*groupW;
+    const va=+arrA[i].gas||0, vb=+arrB[i].gas||0;
+    const ha=(va/max)*ch,hb=(vb/max)*ch;
+    const xa=gx+(groupW-2*barW-barGap)/2;
+    const xb=xa+barW+barGap;
+    s+=`<rect class="chart-bar compare-a" data-index="${i}" data-year="${ys[0]}" x="${xa}" y="${pad.t+ch-ha}" width="${barW}" height="${ha}" rx="3" tabindex="0" role="button" aria-label="${m} ${ys[0]}: ${fmt(va)} kWh"/>`;
+    s+=`<rect class="chart-bar compare-b" data-index="${i}" data-year="${ys[1]}" x="${xb}" y="${pad.t+ch-hb}" width="${barW}" height="${hb}" rx="3" tabindex="0" role="button" aria-label="${m} ${ys[1]}: ${fmt(vb)} kWh"/>`;
+    s+=`<text class="chart-label" x="${gx+groupW/2}" y="${H-12}" text-anchor="middle">${m}</text>`;
+  });
+  s+="</svg>";
+  host.innerHTML=s;
+
+  const show=i=>{
+    const a=arrA[i],b=arrB[i];
+    host.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected"));
+    host.querySelectorAll(`[data-index="${i}"]`).forEach(el=>el.classList.add("selected"));
+    const pct=(+a.gas||0)?(((+b.gas||0)-(+a.gas||0))/(+a.gas||0)*100):0;
+    if(selection) selection.innerHTML=`<strong>${months[i]} · ${ys[1]} vs. ${ys[0]}</strong><div class="detail-grid"><span class="detail-item">${ys[1]}: <b>${fmt(b.gas)} kWh</b></span><span class="detail-item" style="color:#b8b1d0">${ys[0]}: <b>${fmt(a.gas)} kWh</b></span><span class="detail-item"><b>${pct<=0?"Einsparung":"Mehrverbrauch"}: ${Math.abs(pct).toFixed(1).replace(".",",")} %</b></span></div>`;
+  };
+  host.querySelectorAll("[data-index]").forEach(el=>{
+    el.addEventListener("click",()=>show(+el.dataset.index));
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();show(+el.dataset.index)}});
+  });
+  show(0);
+}
+
+function renderCompare(){
+  const all=years().filter(y=>y<=currentYear).sort((a,b)=>b-a);
+  if(all.length<2){
+    $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">VERGLEICH</div><h2>Mehrjahresvergleich</h2></div></div><p class="muted">Importiere mindestens zwei Jahre, um die Jahre direkt zu vergleichen.</p>`;
+    return;
+  }
+  const current=all[0], previous=all[1];
+  const latestMonth=Math.max(1,...monthly(current).map((x,i)=>(x.gas>0||x.out!=null)?i+1:0));
+  const cur=totalToMonth(current,latestMonth), prev=totalToMonth(previous,latestMonth);
+  const pct=prev?((cur-prev)/prev*100):0;
+  $("#compareView").innerHTML=`<div class="panel-head"><div><div class="eyebrow">VERGLEICH</div><h2>${current} vs. ${previous}</h2></div><div class="muted">bis ${months[latestMonth-1]}</div></div>
   <div class="compare-summary">
-    <div class="metric"><span>${currentYear} bis ${months[latestMonth-1]}</span><strong>${fmt(current)} kWh</strong></div>
-    <div class="metric"><span>Vergleich ${ys.find(y=>y!==currentYear)||""}</span><strong>${baseline?fmt(baseline)+" kWh":"–"}</strong></div>
-    <div class="metric"><span>${savings>=0?"Einsparung":"Mehrverbrauch"}</span><strong>${baseline?`${savings>=0?"−":"+"}${Math.abs(savings).toFixed(1).replace(".",",")} %`:"–"}</strong></div>
+    <div class="metric"><span>${current}</span><strong>${fmt(cur)} kWh</strong></div>
+    <div class="metric"><span>${previous}</span><strong>${fmt(prev)} kWh</strong></div>
+    <div class="metric"><span>${pct<=0?"Einsparung":"Mehrverbrauch"}</span><strong>${pct<=0?"−":"+"}${Math.abs(pct).toFixed(1).replace(".",",")} %</strong></div>
   </div>
   <div class="panel-head" style="margin-top:18px"><div><div class="eyebrow">MONATLICH</div><h2>Exakte Werte</h2></div></div>
-  ${months.map((m,i)=>`<div class="month-row"><strong>${m}</strong><div class="muted">${ys.map(y=>`${y}: ${fmt(monthly(y)[i].gas)} kWh`).join(" · ")}</div><div class="value">${i+1<=latestMonth?"":"–"}</div></div>`).join("")}`;
+  ${months.map((m,i)=>{const a=monthly(previous)[i].gas,b=monthly(current)[i].gas;const p=a?((b-a)/a*100):0;return `<div class="month-row"><strong>${m}</strong><div class="muted">${previous}: ${fmt(a)} · ${current}: ${fmt(b)} kWh</div><div class="value">${a?`${p<=0?"−":"+"}${Math.abs(p).toFixed(1).replace(".",",")}%`:"–"}</div></div>`}).join("")}`;
 }
+
 function totalToMonth(y,m){return monthly(y).slice(0,m).reduce((s,x)=>s+(+x.gas||0),0)}
 
 $("#yearSelect").addEventListener("change",e=>{currentYear=+e.target.value;renderYear();renderCompare()});
@@ -199,6 +258,8 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");
   ["yearView","compareView","dataView"].forEach(id=>$("#"+id).classList.add("hidden"));
   $("#"+({year:"yearView",compare:"compareView",data:"dataView"}[b.dataset.view])).classList.remove("hidden");
+  if(b.dataset.view==="compare"){ renderComparisonTop(); }
+  if(b.dataset.view==="year"){ renderYear(); }
 }));
 
 $("#csvInput").addEventListener("change",async e=>{
@@ -242,4 +303,4 @@ populateYears();
 renderYear();
 renderCompare();
 if(importedFiles) save();
-if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js?v=3.3.0");
+if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js?v=3.5.0");

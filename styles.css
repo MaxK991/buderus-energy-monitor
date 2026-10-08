@@ -55,3 +55,9 @@ body{overflow-x:hidden}
 @media(max-width:380px){
   .hero-total strong{font-size:19px}
 }
+
+/* v3.5 comparison bars */
+.chart-bar.compare-a{fill:#aaa3c2}
+.chart-bar.compare-b{fill:#d8d3e8}
+.chart-bar.compare-a.selected,.chart-bar.compare-b.selected{stroke:#25a9e8;stroke-width:2}
+.compare-empty{height:100%;display:grid;place-items:center;text-align:center;color:#aaa;padding:20px}
