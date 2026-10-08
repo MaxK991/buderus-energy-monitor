@@ -9,3 +9,37 @@
 .responsive-chart .chart-temp-dot{fill:#25a9e8}
 .responsive-chart .chart-temp-axis{fill:#25a9e8;font-size:11px}
 .responsive-chart .chart-bar{fill:#d8d3e8}
+
+/* v3.3 responsive mobile layout */
+body{overflow-x:hidden}
+.app{width:100%;max-width:980px}
+.hero-row{min-width:0}
+.hero-row>div{min-width:0}
+.hero-total strong{display:block;white-space:nowrap}
+.month-row{min-width:0}
+.month-row .value{min-width:0}
+@media(max-width:650px){
+  .app{padding:14px 10px 28px}
+  .topbar{gap:10px}
+  h1{font-size:24px}
+  .hero-card{margin-top:12px;padding:14px;border-radius:18px}
+  .hero-row{gap:12px}
+  .hero-row label{font-size:12px}
+  select{font-size:16px;padding:9px 28px 9px 10px}
+  .hero-total{text-align:right}
+  .hero-total span{font-size:11px}
+  .hero-total strong{font-size:23px}
+  .controls{gap:6px;margin:12px 0}
+  .tab{padding:11px 8px;font-size:14px;min-height:44px}
+  .panel{padding:14px;border-radius:16px}
+  .panel-head{gap:8px}
+  .panel-head h2{font-size:20px}
+  .month-row{grid-template-columns:42px minmax(0,1fr) 76px;gap:8px;padding:10px 0}
+  .month-row .value{font-size:13px}
+  .bar-bg{height:12px}
+  footer{font-size:10px}
+}
+@media(max-width:380px){
+  .hero-total strong{font-size:20px}
+  .month-row{grid-template-columns:38px minmax(0,1fr) 70px}
+}

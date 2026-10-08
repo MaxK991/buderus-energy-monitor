@@ -1,4 +1,4 @@
-const APP_VERSION="v3.2.0";
+const APP_VERSION="v3.3.0";
 const DB_KEY="buderus_energy_v2";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -88,7 +88,7 @@ function renderChart(y){
   const host=$("#consumptionChart");
   if(!host)return;
   const arr=monthly(y);
-  const W=760,H=340,pad={l:58,r:52,t:18,b:52};
+  const W=760,H=350,pad={l:52,r:52,t:18,b:48};
   const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
   const max=Math.max(...arr.map(x=>+x.gas||0),1);
   const temps=arr.map(x=>x.out).filter(x=>x!=null&&Number.isFinite(+x));
@@ -96,26 +96,26 @@ function renderChart(y){
   const tmax=temps.length?Math.ceil(Math.max(...temps)+2):20;
   const ty=v=>pad.t+ch-((v-tmin)/Math.max(1,tmax-tmin))*ch;
   const gy=v=>pad.t+ch-(v/max)*ch;
-  const n=12,gap=10,bw=(cw-gap*(n-1))/n;
+  const n=12,gap=9,bw=(cw-gap*(n-1))/n;
   const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
   let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Monatlicher Gasverbrauch und Außentemperatur">`;
   for(let i=0;i<=4;i++){
     const v=max*(1-i/4), yy=gy(v);
     s+=`<line class="chart-grid" x1="${pad.l}" x2="${W-pad.r}" y1="${yy}" y2="${yy}"/>`;
-    s+=`<text class="chart-axis" x="${pad.l-8}" y="${yy+4}" text-anchor="end">${esc(fmt(v))}</text>`;
+    s+=`<text class="chart-axis" x="${pad.l-7}" y="${yy+4}" text-anchor="end">${esc(fmt(v))}</text>`;
   }
   if(temps.length){
     for(let i=0;i<=2;i++){
       const v=tmin+(tmax-tmin)*i/2, yy=ty(v);
-      s+=`<text class="chart-temp-axis" x="${W-pad.r+8}" y="${yy+4}" text-anchor="start">${esc(Math.round(v))}°</text>`;
+      s+=`<text class="chart-temp-axis" x="${W-pad.r+7}" y="${yy+4}" text-anchor="start">${esc(Math.round(v))}°</text>`;
     }
   }
   const points=[];
   arr.forEach((x,i)=>{
     const x0=pad.l+i*(bw+gap);
     const bh=((+x.gas||0)/max)*ch;
-    s+=`<rect class="chart-bar" x="${x0}" y="${pad.t+ch-bh}" width="${bw}" height="${Math.max(0,bh)}" rx="4"/>`;
-    s+=`<text class="chart-label" x="${x0+bw/2}" y="${H-16}" text-anchor="middle">${months[i]}</text>`;
+    s+=`<rect class="chart-bar" data-index="${i}" x="${x0}" y="${pad.t+ch-bh}" width="${bw}" height="${Math.max(0,bh)}" rx="4" tabindex="0" role="button" aria-label="${months[i]} ${y}: ${fmt(+x.gas||0)} kWh${x.out!=null?`, Außentemperatur ${fmt(x.out)} °C`:""}"/>`;
+    s+=`<text class="chart-label" x="${x0+bw/2}" y="${H-14}" text-anchor="middle">${months[i]}</text>`;
     if(x.out!=null&&Number.isFinite(+x.out)) points.push(`${x0+bw/2},${ty(+x.out)}`);
   });
   if(points.length){
@@ -123,12 +123,27 @@ function renderChart(y){
     arr.forEach((x,i)=>{
       if(x.out!=null&&Number.isFinite(+x.out)){
         const x0=pad.l+i*(bw+gap);
-        s+=`<circle class="chart-temp-dot" cx="${x0+bw/2}" cy="${ty(+x.out)}" r="3.5"/>`;
+        s+=`<circle class="chart-temp-dot" data-index="${i}" cx="${x0+bw/2}" cy="${ty(+x.out)}" r="4" tabindex="0" role="button" aria-label="${months[i]} ${y}: Außentemperatur ${fmt(x.out)} °C"/>`;
       }
     });
   }
-  s+="</svg>";
+  s+="</svg><div class=\"chart-tooltip\" id=\"chartTooltip\" aria-live=\"polite\"></div>";
   host.innerHTML=s;
+
+  const tooltip=$("#chartTooltip");
+  const show=i=>{
+    const x=arr[i]; if(!x)return;
+    host.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected"));
+    host.querySelectorAll(`[data-index="${i}"]`).forEach(el=>el.classList.add("selected"));
+    tooltip.innerHTML=`<strong>${months[i]} ${y}</strong><span>Gas: <b>${fmt(+x.gas||0)} kWh</b></span>${x.out!=null?`<span class="temp">Außentemperatur: <b>${fmt(x.out)} °C</b></span>`:"<span>Außentemperatur: keine Daten</span>"}`;
+    tooltip.style.display="block";
+    clearTimeout(window.__buderusTooltipTimer);
+    window.__buderusTooltipTimer=setTimeout(()=>{tooltip.style.display="none";host.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected"));},5000);
+  };
+  host.querySelectorAll("[data-index]").forEach(el=>{
+    el.addEventListener("click",()=>show(+el.dataset.index));
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();show(+el.dataset.index)}});
+  });
 }
 
 function renderYear(){
@@ -196,4 +211,4 @@ populateYears();
 renderYear();
 renderCompare();
 if(importedFiles) save();
-if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js?v=3.2.0");
+if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js?v=3.3.0");

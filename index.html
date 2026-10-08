@@ -8,27 +8,38 @@
   <link rel="stylesheet" href="styles.css">
   <title>Buderus Energy Monitor</title>
 
-<style id="v310-responsive-chart">
-.responsive-chart{
-  width:100%;
-  height:360px;
-  min-height:320px;
-  overflow:hidden;
-  position:relative;
+<style id="v330-responsive-chart">
+.responsive-chart{width:100%;height:350px;position:relative;touch-action:manipulation}
+.responsive-chart svg{display:block;width:100%;height:100%;overflow:visible}
+.responsive-chart .chart-grid{stroke:rgba(255,255,255,.15);stroke-width:1}
+.responsive-chart .chart-axis{fill:#a8a8ae;font-size:12px}
+.responsive-chart .chart-label{fill:#b8b8bd;font-size:12px}
+.responsive-chart .chart-bar{fill:#d8d3e8;cursor:pointer}
+.responsive-chart .chart-bar.selected{fill:#eeeafa;stroke:#fff;stroke-width:1}
+.responsive-chart .chart-temp{fill:none;stroke:#25a9e8;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.responsive-chart .chart-temp-dot{fill:#25a9e8;cursor:pointer}
+.responsive-chart .chart-temp-dot.selected{stroke:#fff;stroke-width:2}
+.chart-tooltip{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#252525;border:1px solid #555;border-radius:12px;padding:9px 12px;min-width:150px;max-width:calc(100% - 24px);box-shadow:0 8px 24px #0008;z-index:4;pointer-events:none;display:none}
+.chart-tooltip strong{display:block;font-size:15px;margin-bottom:3px}
+.chart-tooltip span{display:block;color:#ddd;font-size:12px;line-height:1.45}
+.chart-tooltip .temp{color:#25a9e8}
+@media(max-width:650px){
+  .responsive-chart{height:295px}
+  .responsive-chart .chart-axis,.responsive-chart .chart-label{font-size:10px}
 }
-.responsive-chart svg{
-  display:block;
-  width:100%;
-  height:100%;
-  overflow:visible;
-}
-.responsive-chart .chart-grid{stroke:rgba(255,255,255,.16);stroke-width:1}
-.responsive-chart .chart-axis{fill:#a8a8ae;font-size:13px}
-.responsive-chart .chart-label{fill:#b8b8bd;font-size:13px}
-.responsive-chart .chart-bar{fill:#d8d3e8}
-@media(max-width:600px){
-  .responsive-chart{height:300px;min-height:280px}
-  .responsive-chart .chart-axis,.responsive-chart .chart-label{font-size:11px}
+@media(max-width:650px) and (orientation:landscape){
+  .app{padding:10px 14px 24px}
+  .topbar{padding-bottom:9px}
+  .topbar h1{font-size:22px}
+  .hero-card{margin-top:10px;padding:12px 14px;border-radius:18px}
+  .hero-row{align-items:center}
+  .hero-total strong{font-size:22px}
+  .hero-total span{font-size:11px}
+  .chart-wrap{margin-top:8px}
+  .responsive-chart{height:210px}
+  .legend{margin-top:4px;font-size:11px}
+  .controls{margin:9px 0}
+  .panel{padding:12px}
 }
 </style>
 
@@ -94,9 +105,9 @@
     <footer>
       <span>Lokale Historie · 24+ Monate</span>
       <span id="lastUpdated">Noch keine Daten</span>
-      <span class="app-version" id="appVersion">Version v3.2.0</span>
+      <span class="app-version" id="appVersion">Version v3.3.0</span>
     </footer>
   </main>
-  <script src="app.js?v=3.0.5"></script>
+  <script src="app.js?v=3.3.0"></script>
 </body>
 </html>
