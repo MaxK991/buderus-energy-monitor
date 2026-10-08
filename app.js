@@ -1,4 +1,4 @@
-const APP_VERSION="v3.0.3";
+const APP_VERSION="v3.0.4";
 const DB_KEY="buderus_energy_v1";
 const $=s=>document.querySelector(s);
 const months=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
