@@ -1,6 +1,7 @@
+import {initCloud} from './cloud.mjs';
 import {MONTHS,FIELDS,parseBuderusCSV,mergeRecords,normalizeRecord,getYears,getYear,getComparison,formatEnergy,formatTemp} from './engine.mjs';
 
-const VERSION='v4.1.0';
+const VERSION='v4.2.0';
 const STORAGE='buderus_monitor_v4_rows';
 const LEGACY='buderus_energy_v2';
 const FILE_COUNT='buderus_monitor_v4_file_count';
@@ -182,6 +183,7 @@ async function importCSVs(files){
   if(validFiles){
     if(!persist(pending,importedFiles+validFiles)){setStatus('Dateien gelesen, aber Speichern fehlgeschlagen. Bitte eine Sicherung herunterladen und Speicherplatz prüfen.','error');return;}
     refresh();
+    cloudConnector?.afterImport();
     setStatus(`${validFiles} Datei${validFiles===1?'':'en'} verarbeitet · ${added} neue Messwerte · ${updated} aktualisiert · ${identical} unverändert · ${skipped} leere Zeilen übersprungen.`+(failures.length?'\nNicht verarbeitet: '+failures.join(' | '):''),failures.length?'error':'success');
   }else setStatus('Import fehlgeschlagen: '+failures.join(' | '),'error');
 }
@@ -236,7 +238,9 @@ window.addEventListener('error',event=>error('App-Fehler: '+event.message));
 window.addEventListener('unhandledrejection',event=>error('Unerwarteter Fehler: '+(event.reason?.message||String(event.reason))));
 
 loadState();
+let cloudConnector;
 attach();
 refresh();
 setTab('year');
+cloudConnector=initCloud({getRows:()=>rows,merge:mergeRecords,persist:next=>persist(next,importedFiles),refresh});
 registerSW();

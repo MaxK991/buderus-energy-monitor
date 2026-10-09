@@ -25,3 +25,5 @@
 @media(max-width:370px){.comparison-line{grid-template-columns:37px minmax(0,1fr) minmax(85px,auto);gap:5px}.comparison-values{min-width:85px}.comparison-values .number{font-size:11px}.comparison-values .temperature{font-size:11px}.comparison-weather{margin-left:42px}}
 
 .compare-temperature-hint{margin:3px 0 4px;color:var(--muted);font-size:11px}.compare-temperature-hint span{color:var(--blue)}
+
+.cloud-area{border-top:1px solid var(--border);margin-top:22px;padding-top:5px}.cloud-label{display:block;font-size:12px;color:var(--muted);font-weight:650;margin-top:11px}.cloud-label input{display:block;width:100%;margin-top:4px;padding:12px;background:#252d36;color:var(--text);border:1px solid #526071;border-radius:11px;font-size:16px}.cloud-area .notification{margin-top:10px}.cloud-area .actions{margin-bottom:12px}

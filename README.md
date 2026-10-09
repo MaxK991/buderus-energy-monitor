@@ -1,4 +1,4 @@
-# Buderus Energiemonitor v4.1.0
+# Buderus Energiemonitor v4.2.0
 
 **Neu aufgebaut, ohne Build-System oder externe Bibliotheken.** Geeignet für GitHub Pages, iPhone und andere moderne Browser. Alle Heizungsdaten verbleiben lokal in deinem Browser; hochgeladen werden nur die Programmdateien.
 
@@ -7,7 +7,7 @@
 1. ZIP entpacken.
 2. Alle neun Dateien aus dem obersten ZIP-Verzeichnis in das Stammverzeichnis des GitHub-Repositories `buderus-energy-monitor` hochladen und bestehende Dateien gleichen Namens ersetzen. WICHTIG: `app.mjs` und `engine.mjs` sind neu und werden zusätzlich benötigt.
 3. Alte Projektdateien `app.js` und `sample.csv` dürfen im Repository verbleiben, werden aber nicht mehr benötigt. Sie können später gelöscht werden. Alte `index.html`, `styles.css`, `sw.js`, `manifest.webmanifest`, `icon.svg` ersetzen.
-4. GitHub Pages baut die Website automatisch neu. Einmal `https://maxk991.github.io/buderus-energy-monitor/?v=4.0.0` aufrufen, um alte Cache-Versionen zu umgehen. Unten **Version v4.1.0** prüfen.
+4. GitHub Pages baut die Website automatisch neu. Einmal `https://maxk991.github.io/buderus-energy-monitor/?v=4.0.0` aufrufen, um alte Cache-Versionen zu umgehen. Unten **Version v4.2.0** prüfen.
 5. Unter **Daten** vorhandene MyBuderus-CSV-Dateien importieren. Neuimporte ergänzen bereits gespeicherte Messwerte.
 
 ## Daten und Berechnung
@@ -36,7 +36,7 @@
 - `styles.css`: Mobile-First-Layout, Portrait und Landscape
 - `engine.mjs`: Import, Datentypen und Berechnungen (ohne DOM)
 - `app.mjs`: UI, Datenbankmigration, Interaktionen und Sicherungen
-- `sw.js`: Netzwerk zuerst, Offline-Fallback; Cache v4.1.0
+- `sw.js`: Netzwerk zuerst, Offline-Fallback; Cache v4.2.0
 - `manifest.webmanifest`, `icon.svg`: Installation als PWA
 - `tests.mjs`: automatisierte Engine-Prüfungen (nicht zur Ausführung der Website benötigt)
 
@@ -50,5 +50,13 @@ Engine-Funktionen sind als testbare ES-Module getrennt. Die Ausgabe ist rein sta
 
 **Hinweis zur Navigation:** In iPhone-Querformat passen trotz zweispaltigem Layout nicht zwingend alle zwölf Monatswerte ohne vertikales Scrollen gleichzeitig auf die kurze Displayhöhe. Es gibt aber keine horizontal überlaufende Gesamtseite.
 
-## Neu in v4.1.0
+## Neu in v4.2.0
 Im Monatsvergleich stehen direkt rechts von den beiden Balken der Gasverbrauch und die jeweilige durchschnittliche Außentemperatur (°C). Der Temperaturunterschied zum Vergleichsjahr wird darunter angezeigt. Fehlende Sensorwerte bleiben als „–“ gekennzeichnet.
+
+## Cloud-Synchronisierung v4.2.0
+
+Optionaler Login über Supabase Auth. Lokale Messwerte werden erst nach Klick auf „Jetzt synchronisieren“ hochgeladen. Danach werden neue CSV-Importe bei bestehender Sitzung synchronisiert. Die Supabase-Datenbank hat RLS-Richtlinien für den jeweiligen Benutzer. Nur die öffentliche publishable API-Key liegt im Frontend; keine service-role Keys.
+
+**Vor dem Einsatz prüfen:** E-Mail-Anmeldung und ggf. E-Mail-Bestätigung unter Supabase > Authentication > Providers. GitHub Pages Domain bei Authentication > URL Configuration als erlaubte Redirect-URL eintragen, falls du künftig Magic Links nutzt. Passwort-Login funktioniert ohne Redirect.
+
+**Wichtig:** Daten in localStorage sind weiterhin browserabhängig. Ein Cloud-Abgleich ist kein Ersatz für gelegentliche lokale JSON-Sicherungen.

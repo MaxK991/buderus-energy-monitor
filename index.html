@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101317">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Private, lokale Buderus-Verbrauchshistorie mit Monats- und Jahresvergleich.">
+  <meta name="description" content="Private Buderus-Verbrauchshistorie mit optionaler Cloud-Synchronisierung mit Monats- und Jahresvergleich.">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest?v=4.1.0">
   <link rel="stylesheet" href="styles.css?v=4.1.0">
@@ -17,7 +17,7 @@
     <header class="header">
       <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 21c4-1 4-12 8-12s4 12 8 12" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"/><circle cx="24" cy="21" r="3" fill="currentColor"/></svg></div>
       <div class="brand"><div class="eyebrow">ENERGIEMONITORING</div><h1>Wärmeerzeuger</h1></div>
-      <div class="local-badge" title="Deine Daten bleiben in diesem Browser">Lokal</div>
+      <div class="local-badge" title="Anmelden für Cloud-Synchronisierung">Lokal</div>
     </header>
 
     <nav class="tabs" aria-label="Ansichten">
@@ -54,9 +54,26 @@
       <p class="intro">Importiere deine originalen MyBuderus-CSV-Dateien. Du kannst später weitere Exporte ergänzen. Überlappende Messwerte werden nicht doppelt gezählt.</p>
       <label class="file-cta" for="csvInput"><span aria-hidden="true">＋</span> CSV-Dateien auswählen</label>
       <input class="sr-only-file" id="csvInput" type="file" accept=".csv,text/csv" multiple aria-label="Buderus CSV-Dateien auswählen">
-      <p class="fine-print">Mehrere Dateien auf einmal oder nacheinander · Verarbeitung nur auf diesem Gerät</p>
+      <p class="fine-print">Mehrere Dateien auf einmal oder nacheinander · Verarbeitung zuerst lokal; Cloud-Abgleich nur nach Anmeldung und Aktivierung</p>
       <div class="notification" role="status" aria-live="polite" id="importStatus">Noch kein neuer Import durchgeführt.</div>
       <div class="data-stat" id="dataStat"></div>
+
+      <section class="cloud-area" aria-labelledby="cloudTitle">
+        <h3 id="cloudTitle">Cloud-Synchronisierung</h3>
+        <p class="intro">Optional: Melde dich an, damit deine Messwerte privat in Buderus Hub gespeichert werden. Ohne Anmeldung bleiben alle Daten lokal.</p>
+        <div id="cloudSignedOut">
+          <label class="cloud-label">E-Mail-Adresse<input id="cloudEmail" type="email" autocomplete="email" inputmode="email" placeholder="name@beispiel.de"></label>
+          <label class="cloud-label">Passwort<input id="cloudPassword" type="password" autocomplete="current-password" minlength="8" placeholder="Mindestens 8 Zeichen"></label>
+          <div class="actions"><button class="action-button" id="cloudLogin" type="button">Anmelden</button><button class="action-button" id="cloudSignup" type="button">Konto erstellen</button></div>
+          <p class="fine-print">Eine neue Registrierung kann eine E-Mail-Bestätigung erfordern. Deine Passwörter werden nicht in der Heizungsdatenbank gespeichert.</p>
+        </div>
+        <div id="cloudSignedIn" hidden>
+          <p id="cloudAccount" class="intro"></p>
+          <div class="actions"><button class="action-button" id="cloudSync" type="button">Jetzt synchronisieren</button><button class="action-button" id="cloudLogout" type="button">Abmelden</button></div>
+          <p class="fine-print">Erster Cloud-Abgleich erst nach Tippen auf „Jetzt synchronisieren“. Danach werden neue CSV-Importe synchronisiert, sofern du angemeldet und online bist.</p>
+        </div>
+        <div class="notification" role="status" aria-live="polite" id="cloudStatus">Cloud nicht verbunden.</div>
+      </section>
       <h3>Sicherung</h3>
       <p class="intro">Browserdaten können beim Löschen von Websitedaten verloren gehen. Sichere deine Historie regelmäßig als Datei.</p>
       <div class="actions"><button class="action-button" id="backupBtn">Sicherung herunterladen</button><label class="action-button" for="restoreInput">Sicherung einspielen</label><input class="sr-only-file" id="restoreInput" type="file" accept=".json,application/json"></div>
